@@ -1,8 +1,8 @@
 import axios, { AxiosInstance } from 'axios';
 
 const axiosInstance = axios.create({
-    // baseURL: /*`${process.env.API_BASE_URL}`*/ `${'http://localhost:3000'}`
-    baseURL: 'http://31e5198c.ngrok.io'
+    baseURL: /*`${process.env.API_BASE_URL}`*/ `${'http://localhost:3000'}`
+    // baseURL: 'http://31e5198c.ngrok.io'
 });
 
 class AxiosService {

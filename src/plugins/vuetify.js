@@ -1,10 +1,7 @@
 import Vue from 'vue';
-import Vuetify, { VLayout } from 'vuetify/lib';
+import Vuetify from 'vuetify';
 import 'vuetify/src/stylus/app.styl';
 Vue.use(Vuetify, {
-    iconfont: 'md',
-    components: {
-        VLayout
-    }
+    iconfont: 'md'
 });
 //# sourceMappingURL=vuetify.js.map

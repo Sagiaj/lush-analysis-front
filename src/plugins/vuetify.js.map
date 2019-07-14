@@ -1,1 +1,1 @@
-{"version":3,"file":"vuetify.js","sourceRoot":"","sources":["vuetify.ts"],"names":[],"mappings":"AAAA,OAAO,GAAG,MAAM,KAAK,CAAA;AACrB,OAAO,OAAO,EAAE,EAAE,OAAO,EAAE,MAAM,aAAa,CAAA;AAC9C,OAAO,6BAA6B,CAAA;AAEpC,GAAG,CAAC,GAAG,CAAC,OAAO,EAAE;IACf,QAAQ,EAAE,IAAI;IACd,UAAU,EAAE;QACV,OAAO;KACR;CACF,CAAC,CAAA"}
+{"version":3,"file":"vuetify.js","sourceRoot":"","sources":["vuetify.ts"],"names":[],"mappings":"AAAA,OAAO,GAAG,MAAM,KAAK,CAAA;AACrB,OAAO,OAAO,MAAM,SAAS,CAAA;AAC7B,OAAO,6BAA6B,CAAA;AAEpC,GAAG,CAAC,GAAG,CAAC,OAAO,EAAE;IACf,QAAQ,EAAE,IAAI;CACf,CAAC,CAAA"}
