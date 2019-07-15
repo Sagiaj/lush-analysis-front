@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: `${process.env.API_BASE_URL}`
+    baseURL: `http://lush-branding-analysis-back.herokuapp.com`
 });
 console.log('CHECK THE BASE URL!', process.env.API_BASE_URL);
 
