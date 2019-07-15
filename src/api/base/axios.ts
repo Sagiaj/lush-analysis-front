@@ -3,6 +3,7 @@ import axios, { AxiosInstance } from 'axios';
 const axiosInstance = axios.create({
     baseURL: `${process.env.API_BASE_URL}`
 });
+console.log('CHECK THE BASE URL!', process.env.API_BASE_URL);
 
 class AxiosService {
     static axios: AxiosInstance = axiosInstance;
@@ -25,7 +26,6 @@ class AxiosService {
                     break;
                 default:
                     return Promise.reject(`Unrecorgnized method ${method}`);
-                    break;
             }
             if (!response || response.status != 200) {
                 return Promise.reject("Error retrieving user");
