@@ -25,7 +25,13 @@
         </v-list>
       </v-toolbar>
       <v-list dense class="pt-0">
-        
+        <v-list-tile>
+            <v-list-tile-content>
+              <v-btn flat icon color="primary" @click.native="goToNutrition()">
+                <v-icon>local_dining</v-icon>
+              </v-btn>
+            </v-list-tile-content>
+          </v-list-tile>
       </v-list>
     </v-navigation-drawer>
     <v-content>
@@ -40,6 +46,13 @@ export default {
   name: 'App',
   components: {
 
+  },
+  methods: {
+    goToNutrition() {
+      this.$router.push({
+        name: 'NutritionPlan'
+      })
+    }
   },
   mounted() {
     console.log(this.$vuetify.theme);

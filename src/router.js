@@ -17,6 +17,11 @@ export default new Router({
             // which is lazy-loaded when the route is visited.
             component: () => import(/* webpackChunkName: "about" */ './views/About.vue'),
         },
+        {
+            path: '/nutrition-plan',
+            name: 'NutritionPlan',
+            component: () => import('./components/nutrition/NutritionPlan.vue')
+        }
     ],
 });
 //# sourceMappingURL=router.js.map
