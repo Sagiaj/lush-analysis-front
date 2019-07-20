@@ -1,8 +1,8 @@
 import axios from 'axios';
 const axiosInstance = axios.create({
     baseURL: `http://lush-branding-analysis-back.herokuapp.com`
+    // baseURL: `http://localhost:3000`
 });
-console.log('CHECK THE BASE URL!', process.env.API_BASE_URL);
 class AxiosService {
     static async send(relative_url, method, queryParams = '', bodyParams = {}, additionalHeaders = {}) {
         try {

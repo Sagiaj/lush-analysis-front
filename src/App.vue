@@ -1,8 +1,8 @@
 <template>
   <v-app dark>
-    <v-toolbar app color="purple lighten-1">
+    <v-toolbar app color="grey darken-4">
       <v-toolbar-title class="headline text-uppercase">
-        <v-btn flat icon color="purple lighten-3" @click="drawer = true">
+        <v-btn flat icon color="background--primary" @click="drawer = true">
           <v-icon>menu</v-icon>
         </v-btn>
         <span>Lush Analysis</span>
@@ -10,7 +10,7 @@
     </v-toolbar>
     <v-navigation-drawer absolute v-model="drawer">
       <v-toolbar flat class="transparent">
-        <v-btn flat icon color="purple lighten-3" @click="drawer = false">
+        <v-btn flat icon color="primary" @click="drawer = false">
           <v-icon>cancel</v-icon>
         </v-btn>
         <v-list class="pa-0">
@@ -41,6 +41,9 @@ export default {
   components: {
 
   },
+  mounted() {
+    console.log(this.$vuetify.theme);
+  },
   data () {
     return {
       drawer: false
@@ -48,3 +51,31 @@ export default {
   }
 }
 </script>
+
+<style>
+
+  /* GENERAL THEME BACKGROUND */
+  .application.theme--dark {
+    background: var(--v-accent-base) !important;
+  }
+
+  /* ELEMENTS BACKGROUND */
+  .theme--dark.v-date-picker-table,
+  .theme--dark.v-table, .theme--dark.v-tabs__bar,
+  .theme--dark.v-date-picker-header, .application.theme--dark .v-list, .application.theme--dark .v-navigation-drawer, .theme--dark.v-card {
+    background: var(--v-accent-base) !important;
+  }
+  
+  /* TEXT ELEMENTS */
+  text, textarea, p, a, table, span, table tr, th, td, .v-date-picker-table tbody div {
+    color: var(--v-secondary-base);
+  }
+
+  /* NAVBR TEXT */
+  nav span {
+    color: var(--v-secondary-base);
+  }
+
+
+</style>
+

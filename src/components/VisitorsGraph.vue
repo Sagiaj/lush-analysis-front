@@ -2,26 +2,26 @@
     <v-container fluid>
         <v-card class="mt-3 mx-auto">
             <v-sheet
-                class="v-sheet--offset mx-auto"
+                class="v-sheet--offset mx-auto caption grey background--primary"
                 elevation="12"
-                color="grey darken-2"
                 max-width="calc(100% - 32px)"
                 >
                 <v-sparkline v-for="(graph, idx) in chosenGraphsProperties" :key="idx"
                     :gradient="[graph.gradient]"
                     gradientDirection="bottom"
-                    :style="graph.style"
+                    :style="`${graph.style}`"
                     :line-width="2"
                     :smooth="10"
+                    :labels="graph.label || []"
+                    :label-size="10"
                     :padding="10"
                     auto-draw
                     :value="graph.values"
                 >
-                    
                 </v-sparkline>
             </v-sheet>
             <v-card-title primary-title>
-                <v-toolbar color="purple lighten-2">
+                <v-toolbar color="primary">
                     <h1>Visitors Traffic</h1>
                 </v-toolbar>
             </v-card-title>
@@ -41,7 +41,7 @@
                         </v-chip>
                     </v-flex>
                     <v-flex xs12 v-else>
-                        <v-btn color="purple lighten-1" @click="chosenGraphsProperties = [...graphsProperties]">
+                        <v-btn color="primary" @click="chosenGraphsProperties = [...graphsProperties]">
                             Restore All Graphs
                         </v-btn>
                     </v-flex>
@@ -72,13 +72,10 @@ export default {
             this.chosenGraphsProperties.forEach((graph, i) => {
                 let style = "";
                 if (i > 0) {
-                    style = `margin-top: -25%; top: -${i*20}px`
+                    style = `margin-top: -25%; top: -${i*20}px; position: inherit;`
                 }
                 graph.style = style;
-                console.log('curgraphstyle:', graph.style)
             });
-
-            console.log('after removing:', this.chosenGraphsProperties);
         },
         convertSiteDataToGraph(siteData) {
             const graphsProperties = [];
@@ -117,15 +114,17 @@ export default {
                 let randHexStr = '#'+Math.floor(Math.random()*16777215).toString(16);
                 let style = "";
                 if (i > 0) {
-                    style = `margin-top: -25%; top: -${i*20}px`
+                    style = `margin-top: -25%; top: -${i*20}px; position: inherit;`
                 }
                 graphsProperties.push({
                     name: site,
-                    values: siteVisitValues[site],
+                    values: siteVisitValues[site].length > 1 ? siteVisitValues[site] : [...siteVisitValues[site], ...siteVisitValues[site]],
                     style,
                     gradient: randHexStr
                 });
-            })
+            });
+            graphsProperties[graphsProperties.length - 1].label = Object.keys(dataByDates);
+            console.log('check:', graphsProperties[graphsProperties.length - 1]. label);
 
             return graphsProperties;
         },
@@ -154,3 +153,13 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+    .v-sheet svg.primary--text[style] {
+        font-size: 4px !important;
+    }
+    .v-sheet svg.primary--text g text[style] {
+        font-size: 4px !important;
+    }
+</style>
+

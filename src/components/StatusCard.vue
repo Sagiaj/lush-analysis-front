@@ -4,8 +4,8 @@
             <v-card>
                 <v-card-title primary-title>
                     <div>
-                        <div class="headline">{{ domain }}</div>
-                        <span class="pink--text">Top site</span>
+                        <div class="headline background--secondary--text">{{ domain }}</div>
+                        <span class="background--primary--text">Top site</span>
                     </div>
                 </v-card-title>
                 <v-card-text>
@@ -37,13 +37,11 @@ export default {
     methods: {
         calculateTotalVisits() {
             let { visits, site } = this.item;
-            console.log('item:', visits, site)
             this.domain = site;
             this.totalVisits = visits.reduce((acc, {visits}) => acc + visits, 0);
         }
     },
     mounted () {
-        console.log('mounted');
         this.calculateTotalVisits();
     },
     data () {

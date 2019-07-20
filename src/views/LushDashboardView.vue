@@ -7,9 +7,9 @@
             show-arrows
             dark
             icons-and-text
-            slider-color="purple lighten-3"
+            slider-color="primary"
         >
-            <v-tabs-slider color="purple lighten-3"></v-tabs-slider>
+            <v-tabs-slider color="primary"></v-tabs-slider>
             <v-tab ripple>
                 data table
             </v-tab>
@@ -31,7 +31,7 @@
                         <DateChoice @finishDateChoice="terminateDateChoice"/>
                     </div>
                 </transition>
-                <v-btn flat icon color="purple lighten-3" v-else @click="chooseDateRange = true;">
+                <v-btn flat icon color="primary" v-else @click="chooseDateRange = true;">
                     <v-icon>date_range</v-icon>
                 </v-btn>
             </v-flex>
@@ -52,11 +52,6 @@ export default {
         VisitorsGraph,
         VisitorsTable,
         DateChoice
-    },
-    watch: {
-        startDate() {
-            console.log('changed!', this.startDate);
-        }
     },
     computed: {
 
