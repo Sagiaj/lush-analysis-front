@@ -82,11 +82,76 @@ export default {
             let chosenCarb = {...this.carbs[this.chosenIngredients.carbs]};
             let chosenFat = {...this.fats[this.chosenIngredients.fats]};
 
+            chosenProtein.carbs *= 4;
+            chosenProtein.proteins *= 4;
+            chosenProtein.fats *= 9;
+
+            chosenCarb.carbs *= 4;
+            chosenCarb.proteins *= 4;
+            chosenCarb.fats *= 9;
+
+            chosenFat.carbs *= 4;
+            chosenFat.proteins *= 4;
+            chosenFat.fats *= 9;
+
+            let g1, g2, g3;
+            let relational = 1;
+            if (chosenProtein.proteins != chosenCarb.proteins) {
+                relational = chosenProtein.proteins / chosenCarb.proteins;
+            }
+            let pMinusC = { // example: 2c + 3f = 10
+                p: 0,
+                c: chosenProtein.carbs - ( relational * chosenCarb.carbs ), // this * g2
+                f: chosenProtein.fats - ( relational * chosenCarb.fats ), // this * g3
+                total: this.allowedCalories.proteins - ( relational * this.allowedCalories.carbs )
+            };
+            if (chosenProtein.proteins != chosenFat.proteins) {
+                relational = chosenProtein.proteins / chosenFat.proteins;
+            }
+            let pMinusF = { // example: 5c + f = 12
+                p: 0,
+                c: chosenProtein.carbs - ( relational * chosenFat.carbs ), // this * g2
+                f: chosenProtein.fats - ( relational * chosenFat.fats ), // this * g3
+                total: this.allowedCalories.proteins - ( relational * this.allowedCalories.fats )
+            };
+
+            // assuming pMinusF and pMinusC do not produce zeros except for both p's
+            if (pMinusC.c != pMinusF.c) {
+                relational = pMinusC.c / pMinusF.c;
+            }
+
+            let finalEquation = { // 8f = -1
+                p: 0,
+                c: 0,
+                f: pMinusC.f - ( relational * pMinusF.f ), // this * g3
+                total: pMinusC.total - ( relational * pMinusF.total )
+            };
+
+            g3 = finalEquation.total / finalEquation.f;
+            g2 = ( pMinusF.total - (pMinusF.f * g3) ) / pMinusF.c;
+            g1 = ( this.allowedCalories.proteins - (chosenCarb.proteins * g2) - (chosenFat.proteins * g3) ) / chosenProtein.proteins; // from g1*p1 + g2*p2 + g3*p3 = this.allowedCalories.proteins
+            
+            if (g1 < -1 || g2 < -1 || g3 < 0) {
+                return this.calculateIngredientsSecondary()
+            }
+
+            this.calculatedIngredients.proteins = `${this.chosenIngredients.proteins} - ${Math.round(g1*100)} גרם`;
+            this.calculatedIngredients.carbs = `${this.chosenIngredients.carbs} - ${Math.round(g2*100)} גרם`;
+            this.calculatedIngredients.fats = `${this.chosenIngredients.fats} - ${Math.round(g3*100)} גרם`;
+
+            this.mealComplete = true;
+        },
+        calculateIngredientsSecondary() {
+            console.log('secondary method')
+            let remainingCals = {...this.allowedCalories};
+            let chosenProtein = {...this.proteins[this.chosenIngredients.proteins]};
+            let chosenCarb = {...this.carbs[this.chosenIngredients.carbs]};
+            let chosenFat = {...this.fats[this.chosenIngredients.fats]};
+
             remainingCals.carbs *= 0.9;
             remainingCals.proteins *= 0.9;
 
             // calculate protein food grams based on allowed protein calories
-            console.log('remaining before calculating proteins:', remainingCals, chosenProtein)
             let chosenProteinWeight = this.calculateFoodGramsByTargetCalories(chosenProtein.proteins, remainingCals.proteins);
             this.calculatedIngredients.proteins = `${this.chosenIngredients.proteins} - ${Math.round(chosenProteinWeight)} גרם`;
 
@@ -94,7 +159,6 @@ export default {
             this.updateCaloricRemaindersByFoodConsumption(remainingCals, chosenProtein, chosenProteinWeight);
 
             // calculate the fat food grams based on remaining fat calories
-            console.log('remaining before calculating fats:', remainingCals)
             let chosenFatWeight = 4;
             if (remainingCals.fats > 36) {
                 chosenFatWeight = this.calculateFoodGramsByTargetCalories(chosenFat.fats, remainingCals.fats, "fats");
@@ -103,7 +167,6 @@ export default {
 
             this.updateCaloricRemaindersByFoodConsumption(remainingCals, chosenFat, chosenFatWeight);
 
-            console.log('remaining before calculating carbs:', remainingCals)
             let chosenCarbWeight = 5;
             if (remainingCals.carbs > 20) {
                 // calculate carb food grams based on remaining carb calories
@@ -113,8 +176,6 @@ export default {
 
             // subtract the incidental fat calories from remainingCals
             this.updateCaloricRemaindersByFoodConsumption(remainingCals, chosenCarb, chosenCarbWeight);
-            
-            console.log("AFTER:", remainingCals);
             this.mealComplete = true;
         }
     },
@@ -230,11 +291,10 @@ export default {
                 fats: null
             },
             allowedCalories: {
-                carbs: 204,
-                proteins: 122,
-                fats: 81
+                carbs: (24.4)*4,
+                proteins: (39.1)*4,
+                fats: (15.2)*9
             },
-            // totalCaloriesAllowed: 1750,
             mealComplete: false,
             calculatedIngredients: {
                 proteins: "",
