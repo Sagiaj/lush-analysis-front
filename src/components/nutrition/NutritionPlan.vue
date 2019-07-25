@@ -14,7 +14,7 @@
         </v-layout>
         <v-layout row wrap text-xs-center v-if="allIngredientsChosen">
             <v-flex xs12>
-                <v-btn color="primary" @click.native="calculateIngredients()">תכין לי ארוחה!</v-btn>
+                <v-btn color="primary" @click.native="calculateByOptimization()">תכין לי ארוחה!</v-btn>
             </v-flex>
         </v-layout>
         <v-container grid-list-xl>
@@ -75,6 +75,115 @@ export default {
                 obj[type] = obj[type] - (curFoodTypeInGrams * caloricFactor);
                 return obj;
             }, calObj);
+        },
+        updateOtherConstraints(constraints, curIdx, relativeAction) {
+            // the current constraint's raised values should be distributed among the other values
+            let data = constraints[curIdx].val;
+            // let curFoodType = constraints[curIdx].foodType;
+            // let incrementalStep = constraints[curIdx].increments / 2;
+            // let sumCaloriesFromAction = (data.proteins + data.carbs + data.fats) * constraints[curIdx].increments;
+            let otherConstraints = constraints.filter((c, i) => i !== curIdx).forEach( (constraint, i) => {
+                let relation = ( (data.proteins + data.carbs + data.fats) / ( (constraint.val.proteins + constraint.val.carbs + constraint.val.fats) / 2) );
+                if (relativeAction == "add") {
+                    if (constraint.grams - relation * constraints[curIdx].increments > constraint.lessThan) {
+                        constraint.grams -= relation * constraints[curIdx].increments;
+                    }
+                } else if (relativeAction == "subtract") {
+                    if (constraint.grams + relation * constraints[curIdx].increments < constraint.biggerThan) {
+                        constraint.grams += relation * constraints[curIdx].increments;
+                    }
+                }
+            });
+        },
+        optimizeByConstraints(constraints) {
+            // for each constraint - check conditions
+            // for each condition unmatched - optimize
+            constraints.forEach((constraint, idx) => {
+                let relativeAction;
+                let caloriesFromDedicatedFoodType = constraint.val[constraint.foodType] * constraint.grams;
+                if (caloriesFromDedicatedFoodType < constraint.biggerThan) {
+                    relativeAction = "subtract";
+                    constraint.grams += constraint.increments;
+                } else if (caloriesFromDedicatedFoodType > constraint.lessThan) {
+                    relativeAction = "add";
+                    constraint.grams -= constraint.increments;
+                } else {
+                    return true;
+                }
+                this.updateOtherConstraints(constraints, idx, relativeAction);
+                constraint.increments /= 2;
+            });
+            return this.checkConstraints(constraints);
+        },
+        calculateByOptimization() {
+            let chosenProtein = {...this.proteins[this.chosenIngredients.proteins]};
+            let chosenCarb = {...this.carbs[this.chosenIngredients.carbs]};
+            let chosenFat = {...this.fats[this.chosenIngredients.fats]};
+
+            chosenProtein.carbs *= 4;
+            chosenProtein.proteins *= 4;
+            chosenProtein.fats *= 9;
+
+            chosenCarb.carbs *= 4;
+            chosenCarb.proteins *= 4;
+            chosenCarb.fats *= 9;
+
+            chosenFat.carbs *= 4;
+            chosenFat.proteins *= 4;
+            chosenFat.fats *= 9;
+
+            let constraints = [
+                {
+                    increments: 0.1,
+                    foodType: "proteins",
+                    grams: 0.01,
+                    val: {...chosenProtein},
+                    biggerThan: 0.8 * this.allowedCalories.proteins,
+                    lessThan: this.allowedCalories.proteins
+                },
+                {
+                    increments: 0.1,
+                    foodType: "carbs",
+                    grams: 0.01,
+                    val: {...chosenCarb},
+                    biggerThan: 0.8 * this.allowedCalories.carbs,
+                    lessThan: this.allowedCalories.carbs
+                },
+                {
+                    increments: 0.1,
+                    foodType: "fats",
+                    grams: 0.01,
+                    val: {...chosenFat},
+                    biggerThan: 0.8 * this.allowedCalories.fats,
+                    lessThan: this.allowedCalories.fats
+                }
+            ];
+
+            let startDate = +new Date();
+            let constraintsPassed = this.checkConstraints(constraints);
+
+            while (!constraintsPassed) {
+                constraintsPassed = this.optimizeByConstraints(constraints);
+                if ((+new Date()) - startDate > 500) {
+                    console.log('took too much time so quit! check recent constraints:', constraints);
+                    this.calculatedIngredients.proteins = `${this.chosenIngredients.proteins} - ${Math.round(constraints[0].grams*100)} גרם`;
+                    this.calculatedIngredients.carbs = `${this.chosenIngredients.carbs} - ${Math.round(constraints[1].grams*100)} גרם`;
+                    this.calculatedIngredients.fats = `${this.chosenIngredients.fats} - ${Math.round(constraints[2].grams*100)} גרם`;
+                    this.mealComplete = true;
+                    return true;
+                }
+            }
+        },
+        checkConstraints(constraints) {
+            return constraints.reduce((bool, constraint) => {
+                if (!bool) {
+                    return false;
+                }
+                let calories = constraint.val[constraint.foodType] * constraint.grams;
+                let isBiggerThan = calories > constraint.biggerThan;
+                let isLessThan = calories < constraint.lessThan;
+                return bool && isBiggerThan && isLessThan;
+            }, true);
         },
         calculateIngredients() {
             let remainingCals = {...this.allowedCalories};
@@ -212,6 +321,16 @@ export default {
                     carbs: 24.3,
                     proteins: 5.4,
                     fats: 1.92
+                },
+                "לחם כוסמין 100%": {
+                    carbs: 34.3,
+                    proteins: 14.9,
+                    fats: 4.1
+                },
+                "לחם מיוחד - קונדיטוריה ברון": {
+                    carbs: 39.5,
+                    proteins: 9.9,
+                    fats: 1.68
                 }
             },
             proteins: {
@@ -291,9 +410,14 @@ export default {
                 fats: null
             },
             allowedCalories: {
-                carbs: (24.4)*4,
-                proteins: (39.1)*4,
-                fats: (15.2)*9
+                carbs: (43)*4,
+                proteins: (33)*4,
+                fats: (11)*9
+            },
+            foodTypeFactors: {
+                carbs: 4,
+                proteins: 4,
+                fats: 9
             },
             mealComplete: false,
             calculatedIngredients: {
