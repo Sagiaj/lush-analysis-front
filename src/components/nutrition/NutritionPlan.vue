@@ -55,14 +55,6 @@ export default {
                 fats: null
             };
         },
-        calculateCaloriesPerGrams(foodType, grams) {
-            return {
-                total: ( (foodType.proteins * 4 + foodType.carbs * 4 + foodType.fats * 9) * grams) / 100,
-                carbs: (foodType.carbs * 4 * grams) / 100,
-                proteins: (foodType.proteins * 4 * grams) / 100,
-                fats: (foodType.fats * 4 * grams) / 100
-            }
-        },
         calculateFoodGramsByTargetCalories(gramsOfFood, targetCalories, type = null) {
             let caloricFactor = type === "fats" ? 9 : 4;
             let caloriesPer100g = gramsOfFood * caloricFactor;
@@ -76,46 +68,69 @@ export default {
                 return obj;
             }, calObj);
         },
-        updateOtherConstraints(constraints, curIdx, relativeAction) {
+        updateOtherConstraints(curIdx, relativeAction) {
             // the current constraint's raised values should be distributed among the other values
-            let data = constraints[curIdx].val;
-            // let curFoodType = constraints[curIdx].foodType;
-            // let incrementalStep = constraints[curIdx].increments / 2;
-            // let sumCaloriesFromAction = (data.proteins + data.carbs + data.fats) * constraints[curIdx].increments;
-            let otherConstraints = constraints.filter((c, i) => i !== curIdx).forEach( (constraint, i) => {
-                let relation = ( (data.proteins + data.carbs + data.fats) / ( (constraint.val.proteins + constraint.val.carbs + constraint.val.fats) / 2) );
-                if (relativeAction == "add") {
-                    if (constraint.grams - relation * constraints[curIdx].increments > constraint.lessThan) {
-                        constraint.grams -= relation * constraints[curIdx].increments;
+            let data = this.constraints[curIdx].val;
+            this.constraints.filter((c, i) => (i !== curIdx) && c.isSatisfied === undefined).forEach( (constraint, i, unsatisfiedConstraints) => {
+                let relation = ( ((data.proteins + data.carbs + data.fats) / unsatisfiedConstraints.length) / ( (constraint.val.proteins + constraint.val.carbs + constraint.val.fats)) );
+                if (relativeAction == "positiveDistribution") {
+                    if (constraint.grams - relation * this.constraints[curIdx].increments > constraint.lessThan) {
+                        constraint.grams -= relation * this.constraints[curIdx].increments;
                     }
-                } else if (relativeAction == "subtract") {
-                    if (constraint.grams + relation * constraints[curIdx].increments < constraint.biggerThan) {
-                        constraint.grams += relation * constraints[curIdx].increments;
+                } else if (relativeAction == "negativeDistribution") {
+                    if (constraint.grams + relation * this.constraints[curIdx].increments < constraint.biggerThan) {
+                        constraint.grams += relation * this.constraints[curIdx].increments;
                     }
                 }
             });
         },
-        optimizeByConstraints(constraints) {
-            // for each constraint - check conditions
-            // for each condition unmatched - optimize
-            constraints.forEach((constraint, idx) => {
-                let relativeAction;
-                let caloriesFromDedicatedFoodType = constraint.val[constraint.foodType] * constraint.grams;
-                if (caloriesFromDedicatedFoodType < constraint.biggerThan) {
-                    relativeAction = "subtract";
-                    constraint.grams += constraint.increments;
-                } else if (caloriesFromDedicatedFoodType > constraint.lessThan) {
-                    relativeAction = "add";
-                    constraint.grams -= constraint.increments;
-                } else {
-                    return true;
+        getUnsatisfiedConstraints() {
+            return this.constraints.filter((c, i) => c.isSatisfied === undefined);
+        },
+        optimizeByConstraints() {
+            this.constraints.forEach((c, i) => {
+                let caloriesFromDedicatedFoodType = c.val[c.foodType] * c.grams;
+                let relativeFactor = 0;
+                if (caloriesFromDedicatedFoodType < c.biggerThan) {
+                    relativeFactor = 1;
+                } else if (caloriesFromDedicatedFoodType > c.lessThan) {
+                    relativeFactor = -1;
                 }
-                this.updateOtherConstraints(constraints, idx, relativeAction);
-                constraint.increments /= 2;
+                c.grams += c.increments * relativeFactor;
+                c.increments /= 1.07;
             });
-            return this.checkConstraints(constraints);
+            this.calculateGlobalConstraintSums();
+            this.normalizeConstraintsByGlobalBoundaries();
+            return this.checkConstraints();
+        },
+        normalizeConstraintsByGlobalBoundaries() {
+            for (let foodType of this.ingredients.map(i => i.name)) {
+                let curConstraint = this.constraints.find(c => c.foodType == foodType);
+                let curGlobalConstraint = this.globalConstraint[foodType];
+                if (curGlobalConstraint.isSatisfied) {
+                    return;
+                }
+                if (curGlobalConstraint.sum < curGlobalConstraint.biggerThan) {
+                    let calsToAdd = (curGlobalConstraint.biggerThan - curGlobalConstraint.sum);
+                    let gramsToAdd = calsToAdd / (this.foodTypeFactors[foodType] * curConstraint.val[foodType])
+                    curConstraint.grams += gramsToAdd;
+                } else if (curGlobalConstraint.sum > curGlobalConstraint.lessThan) {
+                    let calsToSub = (curGlobalConstraint.sum - curGlobalConstraint.lessThan);
+                    let gramsToSub = calsToSub / (this.foodTypeFactors[foodType] * curConstraint.val[foodType]);
+                    curConstraint.grams -= gramsToSub;
+                } else {
+                    curGlobalConstraint.isSatisfied = true;
+                }
+            }
+            this.calculateGlobalConstraintSums();
+        },
+        updateGlobalConstraintByRecentAction(amount, values) {
+            this.globalConstraint.proteins.sum += amount * values.proteins;
+            this.globalConstraint.carbs.sum += amount * values.carbs;
+            this.globalConstraint.fats.sum += amount * values.fats;
         },
         calculateByOptimization() {
+            this.resetConstraintValues();
             let chosenProtein = {...this.proteins[this.chosenIngredients.proteins]};
             let chosenCarb = {...this.carbs[this.chosenIngredients.carbs]};
             let chosenFat = {...this.fats[this.chosenIngredients.fats]};
@@ -132,7 +147,7 @@ export default {
             chosenFat.proteins *= 4;
             chosenFat.fats *= 9;
 
-            let constraints = [
+            this.constraints = [
                 {
                     increments: 0.1,
                     foodType: "proteins",
@@ -160,30 +175,65 @@ export default {
             ];
 
             let startDate = +new Date();
-            let constraintsPassed = this.checkConstraints(constraints);
-
-            while (!constraintsPassed) {
-                constraintsPassed = this.optimizeByConstraints(constraints);
+            let timeout = false;
+            let constraintsPassed = this.checkConstraints();
+            while (!constraintsPassed && !timeout) {
+                constraintsPassed = this.optimizeByConstraints();
                 if ((+new Date()) - startDate > 500) {
-                    console.log('took too much time so quit! check recent constraints:', constraints);
-                    this.calculatedIngredients.proteins = `${this.chosenIngredients.proteins} - ${Math.round(constraints[0].grams*100)} גרם`;
-                    this.calculatedIngredients.carbs = `${this.chosenIngredients.carbs} - ${Math.round(constraints[1].grams*100)} גרם`;
-                    this.calculatedIngredients.fats = `${this.chosenIngredients.fats} - ${Math.round(constraints[2].grams*100)} גרם`;
-                    this.mealComplete = true;
-                    return true;
+                    console.log('Terminated execution after 500ms!');
+                    timeout = true;
                 }
             }
+
+            this.calculatedIngredients.proteins = `${this.chosenIngredients.proteins} - ${Math.round(this.constraints[0].grams*100)} גרם`;
+            this.calculatedIngredients.carbs = `${this.chosenIngredients.carbs} - ${Math.round(this.constraints[1].grams*100)} גרם`;
+            this.calculatedIngredients.fats = `${this.chosenIngredients.fats} - ${Math.round(this.constraints[2].grams*100)} גרם`;
+            this.mealComplete = true;
+            let proteins = 0, carbs = 0, fats = 0;
+            this.constraints.forEach(constraint => {
+                proteins += constraint.grams * constraint.val["proteins"];
+                carbs += constraint.grams * constraint.val["carbs"];
+                fats += constraint.grams * constraint.val["fats"];
+            });
+            console.log(`proteins: ${proteins/4}, carbs: ${carbs/4}, fats: ${fats/9}`);
+            this.constraints = [];
         },
-        checkConstraints(constraints) {
-            return constraints.reduce((bool, constraint) => {
-                if (!bool) {
+        checkConstraints() {
+            return this.constraints.reduce((bool, constraint) => {
+                if (!bool && !constraint.isSatisfied) {
                     return false;
                 }
                 let calories = constraint.val[constraint.foodType] * constraint.grams;
                 let isBiggerThan = calories > constraint.biggerThan;
                 let isLessThan = calories < constraint.lessThan;
-                return bool && isBiggerThan && isLessThan;
+                if (isBiggerThan && isLessThan) {
+                    constraint.isSatisfied = true;
+                }
+                return (constraint.isSatisfied || bool) && isBiggerThan && isLessThan;
             }, true);
+        },
+        calculateGlobalConstraintSums() {
+            this.globalConstraint.proteins.sum = 0;
+            this.globalConstraint.carbs.sum = 0;
+            this.globalConstraint.fats.sum = 0;
+            for (let constraint of this.constraints) {
+                this.globalConstraint.proteins.sum += constraint.grams * constraint.val["proteins"];
+                this.globalConstraint.carbs.sum += constraint.grams * constraint.val["carbs"];
+                this.globalConstraint.fats.sum += constraint.grams * constraint.val["fats"];
+            }
+            this.checkGlobalConstraints();
+        },
+        checkGlobalConstraints() {
+            this.ingredients.map(i => i.name).forEach(foodType => {
+                let curGlobalConstraint = this.globalConstraint[foodType];
+                if (curGlobalConstraint.sum > curGlobalConstraint.isBiggerThan &&
+                    curGlobalConstraint.sum < curGlobalConstraint.lessThan) {
+                        console.log('satified')
+                        curGlobalConstraint.isSatisfied = true;
+                    } else {
+                        curGlobalConstraint.isSatisfied = false;
+                    }
+            });
         },
         calculateIngredients() {
             let remainingCals = {...this.allowedCalories};
@@ -286,6 +336,23 @@ export default {
             // subtract the incidental fat calories from remainingCals
             this.updateCaloricRemaindersByFoodConsumption(remainingCals, chosenCarb, chosenCarbWeight);
             this.mealComplete = true;
+        },
+        resetConstraintValues() {
+            this.globalConstraint.proteins.sum = 0;
+            this.globalConstraint.proteins.isSatisfied = false;
+            this.globalConstraint.carbs.sum = 0;
+            this.globalConstraint.carbs.isSatisfied = false;
+            this.globalConstraint.fats.sum = 0;
+            this.globalConstraint.fats.isSatisfied = false;
+
+            this.globalConstraint.proteins.isLessThan *= this.allowedCalories.proteins;
+            this.globalConstraint.proteins.isBiggerThan *= this.allowedCalories.proteins;
+
+            this.globalConstraint.carbs.isLessThan *= this.allowedCalories.carbs;
+            this.globalConstraint.carbs.isBiggerThan *= this.allowedCalories.carbs;
+
+            this.globalConstraint.fats.isLessThan *= this.allowedCalories.fats;
+            this.globalConstraint.fats.isBiggerThan *= this.allowedCalories.fats;
         }
     },
     mounted() {
@@ -293,6 +360,8 @@ export default {
             let name = this.ingredients[idx].name;
             this.ingredients[idx].values = [...Object.keys(this[name])];
         }
+
+        this.resetConstraintValues();
     },
     data () {
         return {
@@ -348,6 +417,11 @@ export default {
                     carbs: 4.3,
                     proteins: 9.5,
                     fats: 5
+                },
+                "חביתה L": {
+                    carbs: 0.4,
+                    proteins: 6.5,
+                    fats: 7.3
                 },
                 "גבינה צהובה 9% עמק": {
                     carbs: 0.2,
@@ -418,6 +492,24 @@ export default {
                 carbs: 4,
                 proteins: 4,
                 fats: 9
+            },
+            constraints: [],
+            globalConstraint: {
+                proteins: {
+                    sum: 0,
+                    isLessThan: 1.05,
+                    isBiggerThan: 0.9
+                },
+                carbs: {
+                    sum: 0,
+                    isLessThan: 1.05,
+                    isBiggerThan: 0.9
+                },
+                fats: {
+                    sum: 0,
+                    isLessThan: 1.05,
+                    isBiggerThan: 0.9
+                }
             },
             mealComplete: false,
             calculatedIngredients: {
