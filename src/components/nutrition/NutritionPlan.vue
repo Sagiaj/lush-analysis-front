@@ -376,6 +376,11 @@ export default {
                     proteins: 3.38,
                     fats: 0.62
                 },
+                "פסטה - כוסמין מלא(ALB-GOLD)": {
+                    carbs: 26.5,
+                    proteins: 5.3,
+                    fats: 0.5
+                },
                 "לחם אנג'ל 100% מלא": {
                     carbs: 31.8,
                     proteins: 11.8,
@@ -390,6 +395,11 @@ export default {
                     carbs: 24.3,
                     proteins: 5.4,
                     fats: 1.92
+                },
+                "ברנפלקס - EXTRA PROTEIN": {
+                    carbs: 74.1,
+                    proteins: 20,
+                    fats: 2.4
                 },
                 "לחם כוסמין 100%": {
                     carbs: 34.3,
