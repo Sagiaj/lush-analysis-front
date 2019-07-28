@@ -494,9 +494,9 @@ export default {
                 fats: null
             },
             allowedCalories: {
-                carbs: (43)*4,
-                proteins: (33)*4,
-                fats: (11)*9
+                carbs: (27)*4,
+                proteins: (35)*4,
+                fats: (13)*9
             },
             foodTypeFactors: {
                 carbs: 4,
