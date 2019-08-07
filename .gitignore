@@ -20,3 +20,7 @@ yarn-error.log*
 *.sln
 *.sw?
 vue.config.js
+
+# Generated typescript js and mappings
+/src/**/*.js
+/src/**/*.js.map

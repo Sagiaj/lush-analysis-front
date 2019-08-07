@@ -410,6 +410,11 @@ export default {
                     carbs: 39.5,
                     proteins: 9.9,
                     fats: 1.68
+                },
+                "לחם הארץ - קמח שיפון מלא ללא שמרים": {
+                    carbs: 35.2,
+                    proteins: 10.4,
+                    fats: 1.5
                 }
             },
             proteins: {
@@ -447,6 +452,11 @@ export default {
                     carbs: 0,
                     proteins: 29,
                     fats: 3.1
+                },
+                "אבקת חלבון": {
+                    carbs: 12.5,
+                    proteins: 73,
+                    fats: 5.5
                 }
             },
             fats: {
