@@ -415,6 +415,11 @@ export default {
                     carbs: 35.2,
                     proteins: 10.4,
                     fats: 1.5
+                },
+                "לחם ברמן אקטיב": {
+                    carbs: 46.6,
+                    proteins: 10.8,
+                    fats: 2.9
                 }
             },
             proteins: {
@@ -469,6 +474,11 @@ export default {
                     carbs: 16,
                     proteins: 28,
                     fats: 53
+                },
+                "": {
+                    carbs: 0,
+                    proteins: 0,
+                    fats: 91.4
                 },
                 "אגוזי מלך": {
                     carbs: 13.71,
