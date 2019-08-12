@@ -376,6 +376,11 @@ export default {
                     proteins: 3.38,
                     fats: 0.62
                 },
+                "פסטה כוסמין אורגנית בטעם תרד": {
+                    carbs: 26.7,
+                    proteins: 3.6,
+                    fats: 0.4
+                },
                 "פסטה - כוסמין מלא(ALB-GOLD)": {
                     carbs: 26.5,
                     proteins: 5.3,
@@ -475,7 +480,7 @@ export default {
                     proteins: 28,
                     fats: 53
                 },
-                "": {
+                "שמן זית": {
                     carbs: 0,
                     proteins: 0,
                     fats: 91.4
