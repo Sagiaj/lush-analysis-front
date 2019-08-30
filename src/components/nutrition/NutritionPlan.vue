@@ -480,7 +480,7 @@ export default {
                     proteins: 28,
                     fats: 53
                 },
-                "": {
+                "אבוקדו": {
                     carbs: 9.53,
                     proteins: 2,
                     fats: 14.66
