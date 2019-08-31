@@ -485,7 +485,6 @@ export default {
                     proteins: 2,
                     fats: 14.66
                 },
-                
                 "שמן זית": {
                     carbs: 0,
                     proteins: 0,
