@@ -472,6 +472,11 @@ export default {
                     carbs: 12.5,
                     proteins: 73,
                     fats: 5.5
+                },
+                "בולגרית קוביות פיראוס 5%": {
+                    carbs: 0.5,
+                    proteins: 18,
+                    fats: 5
                 }
             },
             fats: {
