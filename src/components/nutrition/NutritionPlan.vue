@@ -425,6 +425,11 @@ export default {
                     carbs: 46.6,
                     proteins: 10.8,
                     fats: 2.9
+                },
+                "טורטייה": {
+                    carbs: 46.1,
+                    proteins: 6.14,
+                    fats: 8
                 }
             },
             proteins: {
